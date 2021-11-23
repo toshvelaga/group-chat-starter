@@ -52,11 +52,16 @@ const Room = (props) => {
           const peers = []
           users.forEach((userID) => {
             const peer = createPeer(userID, socketRef.current.id, stream)
+            console.log(peer)
+
             peersRef.current.push({
               peerID: userID,
               peer,
             })
-            peers.push(peer)
+            peers.push({
+              peerID: userID,
+              peer,
+            })
           })
           setPeers(peers)
         })
@@ -67,13 +72,31 @@ const Room = (props) => {
             peerID: payload.callerID,
             peer,
           })
+
+          const peerObj = {
+            peer,
+            peerID: payload.callerID,
+          }
+
           setPeers((users) => {
-            return [...users, peer]
+            return [...users, peerObj]
           })
         })
+
         socketRef.current.on('receiving returned signal', (payload) => {
           const item = peersRef.current.find((p) => p.peerID === payload.id)
           item.peer.signal(payload.signal)
+        })
+
+        socketRef.current.on('user left', (id) => {
+          const peerObj = peersRef.current.find((p) => p.peerID === id)
+          console.log(peerObj)
+          if (peerObj) {
+            peerObj.peer.destroy()
+          }
+          const peers = peersRef.current.filter((p) => p.peerID !== id)
+          peersRef.current = peers
+          setPeers(peers)
         })
       })
   }, [])
@@ -113,11 +136,14 @@ const Room = (props) => {
     return peer
   }
 
+  console.log(peers)
+  console.log(peersRef)
+
   return (
     <Container>
       <StyledVideo muted ref={userVideo} autoPlay playsInline />
       {peers.map((peer, index) => {
-        return <Video key={index} peer={peer} />
+        return <Video key={peer.peerID} peer={peer.peer} />
       })}
     </Container>
   )
