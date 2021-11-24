@@ -6,6 +6,16 @@ const server = http.createServer(app)
 const socket = require('socket.io')
 const io = socket(server)
 
+if (process.env.NODE_ENV === 'production') {
+  // serve static content
+  // npm run build
+  app.use(express.static(path.join(__dirname, 'client/build')))
+
+  app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, 'client/build', 'index.html'))
+  })
+}
+
 const users = {}
 
 const socketToRoom = {}
