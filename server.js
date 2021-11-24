@@ -5,6 +5,7 @@ const app = express()
 const server = http.createServer(app)
 const socket = require('socket.io')
 const io = socket(server)
+const path = require('path')
 
 if (process.env.NODE_ENV === 'production') {
   // serve static content
